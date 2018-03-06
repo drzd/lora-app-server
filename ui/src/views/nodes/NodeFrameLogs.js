@@ -66,6 +66,26 @@ class FrameRow extends Component {
   }
 }
 
+class Limit extends React.Component {
+  onSubmit = (e) => {
+    e.preventDefault();
+    this.props.updatePageSize(this.limitInput.value);
+  };
+
+  render() {
+    const { pageSize } = this.props;
+    return (
+      <form className="form-inline" onSubmit={this.onSubmit}>
+        <div className="form-group" style={{marginRight: 10}}>
+          <label htmlFor="limit-input" style={{marginRight: 10}}>Limit: </label>
+          <input type="text" className="form-control" id="limit-input" ref={node => this.limitInput = node} defaultValue={pageSize} style={{width: 50, textAlign: 'center'}} />
+        </div>
+        <button type="submit" className="btn btn-primary">OK</button>
+      </form>
+    );
+  }
+}
+
 class NodeFrameLogs extends Component {
   constructor() {
     super();
@@ -78,6 +98,7 @@ class NodeFrameLogs extends Component {
     };
 
     this.updatePage = this.updatePage.bind(this);
+    this.updatePageSize = this.updatePageSize.bind(this);
   }
 
   componentDidMount() {
@@ -101,12 +122,28 @@ class NodeFrameLogs extends Component {
     });
   }
 
+  updatePageSize(pageSize) {
+    this.setState({
+      pageSize
+    }, () => {
+      this.props.history.push({
+        ...this.props.location,
+        query: Object.assign({}, this.props.location.query, {page: 1})
+      });
+    });
+  }
+
   render () {
     const FrameRows = this.state.frames.map((frame, i) => <FrameRow key={new Date().getTime() + i} frame={frame} />);
 
     if (FrameRows.length > 0) {
       return (
         <div>
+          <div className="clearfix" style={{marginBottom: 18}}>
+            <div className="pull-right">
+              <Limit pageSize={this.state.pageSize} updatePageSize={this.updatePageSize} />
+            </div>
+          </div>
           <div className="alert alert-warning" role="alert">
             The table below displays the raw and encrypted LoRaWAN frames. Use this data for debugging purposes.
             For application integration, please see the <a href="https://docs.loraserver.io/lora-app-server/integrate/data/">Send / receive data</a> documentation page.
