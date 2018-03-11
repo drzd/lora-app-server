@@ -3,7 +3,16 @@ import moment from "moment/moment";
 import {LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Label} from 'recharts';
 import randomColor from 'randomcolor';
 
+import CustomLegend from './Legend';
+
 export default class extends React.Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {};
+    this.handleToggleClick = this.handleToggleClick.bind(this);
+  }
+
 
   // transform rxInfoSet into object keyed by mac
   transformInfoSetIntoObject(rxInfoSet) {
@@ -16,13 +25,33 @@ export default class extends React.Component {
     }, {});
   }
 
+  renderLine(name, key, options = {}) {
+    return <Line
+      name={name}
+      key={name}
+      dataKey={this.state[name] ? '' : key}
+      stroke={randomColor({seed: key})}
+      type="monotone"
+      yAxisId="left"
+      strokeWidth={2}
+      connectNulls={true}
+      {...options}
+    />;
+  }
+
   renderLines(macs) {
     return macs.reduce((result, mac) => {
-      const key1 = `rxInfoSet.${mac}.loRaSNR`, key2 = `rxInfoSet.${mac}.rssi`;
-      result.push(<Line connectNulls={true} strokeWidth={2} key={key1} yAxisId="left" type="monotone" dataKey={key1} stroke={randomColor({seed: key1})}/>);
-      result.push(<Line connectNulls={true} strokeWidth={2} key={key2} yAxisId="left" type="monotone" dataKey={key2} stroke={randomColor({seed: key2})}/>);
+      result.push(this.renderLine(`${mac}.SNR`, `rxInfoSet.${mac}.loRaSNR`));
+      result.push(this.renderLine(`${mac}.rssi`, `rxInfoSet.${mac}.rssi`));
       return result;
     }, []);
+  }
+
+  handleToggleClick(name) {
+    this.setState({
+      ...this.state,
+      [name]: !this.state[name]
+    });
   }
 
   render() {
@@ -51,7 +80,7 @@ export default class extends React.Component {
         <ResponsiveContainer width="100%" height={450}>
           <LineChart data={data}>
             <XAxis dataKey="timestamp">
-              <Label value="timestamp" offset={0} position="insideBottom"/>
+              <Label value="time" offset={0} position="insideBottom"/>
             </XAxis>
             <YAxis yAxisId="left">
               <Label value="rssi, loRaSNR" offset={0} position="insideLeft" angle={-90}/>
@@ -61,9 +90,11 @@ export default class extends React.Component {
             </YAxis>
             <CartesianGrid strokeDasharray="3 3"/>
             <Tooltip/>
-            <Legend/>
+            <Legend content={CustomLegend} onClick={this.handleToggleClick} state={this.state} />
             { this.renderLines(macs) }
-            <Line yAxisId="right" strokeWidth={2} type="monotone" dataKey="fCnt" stroke="#773377"/>
+            { this.renderLine('fCnt', 'fCnt', {
+              yAxisId: "right",
+            }) }
           </LineChart>
         </ResponsiveContainer>
         <div className="helper-block">
