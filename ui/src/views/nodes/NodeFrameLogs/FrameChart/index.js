@@ -61,7 +61,7 @@ export default class extends React.Component {
       // leave only rxInfoSet, timestamp and fCnt
       .map(frame => ({
         rxInfoSet: this.transformInfoSetIntoObject(frame.rxInfoSet),
-        timestamp: moment(frame.createdAt).format("hh:mm DD.MM.YY"),
+        timestamp: moment(frame.createdAt).format("HH:mm DD.MM.YY"),
         fCnt: frame.phyPayload.macPayload.fhdr.fCnt
       }))
       .reverse();
